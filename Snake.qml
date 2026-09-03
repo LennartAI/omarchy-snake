@@ -1,5 +1,6 @@
 import Quickshell
 import Quickshell.Wayland
+import Quickshell.Hyprland
 import QtQuick
 import qs.Commons
 import qs.Ui
@@ -20,6 +21,17 @@ Item {
   property int score: 0
   property int highScore: 0
 
+  // Workspace isolation: layer-shell surfaces aren't workspace-bound by
+  // default, they float above the whole output no matter which workspace is
+  // active. Remember the workspace this was opened on and auto-dismiss the
+  // moment focus moves to a different one, so it doesn't follow you around.
+  property int homeWorkspaceId: -1
+  readonly property var focusedWorkspace: Hyprland.focusedWorkspace
+  onFocusedWorkspaceChanged: {
+    if (root.opened && root.homeWorkspaceId !== -1 && root.focusedWorkspace && root.focusedWorkspace.id !== root.homeWorkspaceId)
+      root.dismiss()
+  }
+
   readonly property int cols: 26
   readonly property int rows: 16
   property var snake: []
@@ -27,8 +39,21 @@ Item {
   property string pendingDirection: "right"
   property var food: null
   property int tickMs: 130
-  readonly property int tickMinMs: 60
-  readonly property int tickStartMs: 130
+  readonly property int tickMinMs: 45
+
+  // Speed controls: a 1-5 knob the player sets with +/-, independent of the
+  // per-food ramp-up below. Persists across restarts and reopening the
+  // overlay — it's a preference, not part of a single run.
+  readonly property var speedPresets: [220, 175, 130, 95, 65]
+  property int speedLevel: 3
+
+  function changeSpeed(delta) {
+    var next = Math.max(1, Math.min(root.speedPresets.length, root.speedLevel + delta))
+    if (next === root.speedLevel) return
+    root.speedLevel = next
+    root.tickMs = Math.max(root.tickMinMs, root.speedPresets[next - 1] - root.score * 3)
+    if (!root.paused && !root.gameOver) tickTimer.interval = root.tickMs
+  }
 
   // Theme surface tokens — the [menu] surface (card chrome, already
   // alpha-composited for translucency) plus the foundational accent/urgent
@@ -42,12 +67,13 @@ Item {
   property color foodColor: Color.urgent
   property var borderSpec: Border.surfaceSpec("menu", "border", borderColor, Math.max(1, Style.space(2)))
 
-  property int cardWidth: Style.space(460)
+  property int cardWidth: Style.space(500)
   property int cardHeight: Style.space(340)
   property int headerHeight: Math.max(Style.space(24), Style.font.heading + Style.spacing.controlPaddingY)
 
   function open(payloadJson) {
     root.opened = true
+    root.homeWorkspaceId = root.focusedWorkspace ? root.focusedWorkspace.id : -1
     if (root.snake.length === 0) {
       resetGame()
     } else if (!root.gameOver && !root.paused) {
@@ -80,7 +106,7 @@ Item {
     root.direction = "right"
     root.pendingDirection = "right"
     root.score = 0
-    root.tickMs = root.tickStartMs
+    root.tickMs = root.speedPresets[root.speedLevel - 1]
     root.paused = false
     root.gameOver = false
     spawnFood()
@@ -140,7 +166,7 @@ Item {
 
     if (root.food && nx === root.food.x && ny === root.food.y) {
       root.score += 1
-      root.tickMs = Math.max(root.tickMinMs, root.tickStartMs - root.score * 3)
+      root.tickMs = Math.max(root.tickMinMs, root.speedPresets[root.speedLevel - 1] - root.score * 3)
       tickTimer.interval = root.tickMs
       spawnFood()
     } else {
@@ -225,6 +251,15 @@ Item {
             root.togglePause()
             event.accepted = true
             break
+          case Qt.Key_Plus:
+          case Qt.Key_Equal:
+            root.changeSpeed(1)
+            event.accepted = true
+            break
+          case Qt.Key_Minus:
+            root.changeSpeed(-1)
+            event.accepted = true
+            break
           case Qt.Key_R:
             if (root.gameOver) root.resetGame()
             event.accepted = true
@@ -259,7 +294,7 @@ Item {
             anchors.right: parent.right
             anchors.verticalCenter: parent.verticalCenter
             textFormat: Text.PlainText
-            text: "Score " + root.score + "  ·  Best " + root.highScore
+            text: "Score " + root.score + "  ·  Best " + root.highScore + "  ·  Speed " + root.speedLevel + "/" + root.speedPresets.length
             color: root.textColor
             opacity: 0.75
             font.family: Style.font.menuFamily
@@ -309,7 +344,7 @@ Item {
           width: parent.width
           horizontalAlignment: Text.AlignHCenter
           textFormat: Text.PlainText
-          text: "wasd / arrows move · p pause · r restart · q / esc close"
+          text: "wasd/arrows move · +/- speed · p pause · r restart · q/esc close"
           color: root.textColor
           opacity: 0.55
           font.family: Style.font.menuFamily

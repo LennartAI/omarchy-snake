@@ -7,6 +7,8 @@ A small, semi-transparent Snake overlay for [Omarchy](https://omarchy.org/) (Qua
 - Small and centered, not fullscreen — whatever's behind it stays visible.
 - Colors come straight from the shell's live theme singleton (`Color.accent`, `Color.urgent`, the `menu` surface), so it always matches your current Omarchy theme and repaints instantly if you switch themes while it's open.
 - State survives closing the overlay — reopen it and your run, score, and difficulty pick up where you left off. Restart anytime with `r` after a game over.
+- Stays on the workspace it was opened on — switch workspaces and it auto-hides instead of floating on top of wherever you went; summon it again there if you want it.
+- Adjustable base speed (`+`/`-`), independent of the per-food speed-up ramp within a run.
 
 This is a Quickshell **overlay plugin** for the Omarchy shell (`omarchy-shell`) — it runs inside the same long-running shell process as the bar, menu, emoji picker, etc. It is not a standalone app.
 
@@ -37,6 +39,7 @@ Pick whatever key combo you like; check it's free first with `omarchy menu keybi
 | Key | Action |
 |---|---|
 | `wasd` / arrow keys | move |
+| `+` / `-` | speed up / slow down |
 | `p` | pause / resume |
 | `r` | restart (after game over) |
 | `q` / `Esc` | close the overlay |
