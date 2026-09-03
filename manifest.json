@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "id": "io.github.lennartai.snake",
+  "name": "Snake",
+  "version": "1.0.0",
+  "author": "Lennart Gundelach",
+  "license": "MIT",
+  "description": "A small, theme-matched Snake overlay to play while you wait on something else",
+  "kinds": ["overlay"],
+  "keepLoaded": true,
+  "entryPoints": { "overlay": "Snake.qml" }
+}
