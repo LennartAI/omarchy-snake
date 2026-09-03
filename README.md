@@ -60,6 +60,8 @@ Then remove the keybinding you added in `bindings.lua`.
 omarchy plugin update io.github.lennartai.snake
 ```
 
+If the overlay was already open/loaded in this shell session before updating, run `omarchy restart shell` afterwards. Quickshell's hot-reload for `keepLoaded` overlay plugins recompiles the file but doesn't always apply structural changes (new properties, new bindings) to the already-mounted instance — a full shell restart guarantees a clean load. A plain reinstall/first install doesn't need this, since there's no stale instance yet.
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
