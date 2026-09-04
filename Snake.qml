@@ -248,6 +248,7 @@ Item {
             event.accepted = true
             break
           case Qt.Key_P:
+          case Qt.Key_Space:
             root.togglePause()
             event.accepted = true
             break
@@ -333,7 +334,7 @@ Item {
               ctx.font = Style.font.title + "px " + Style.font.menuFamily
               ctx.textAlign = "center"
               ctx.textBaseline = "middle"
-              ctx.fillText(root.gameOver ? "Game over — r to restart" : "Paused — p to resume", width / 2, height / 2)
+              ctx.fillText(root.gameOver ? "Game over — r to restart" : "PAUSED — space/p to resume", width / 2, height / 2)
               ctx.globalAlpha = 1.0
             }
           }
@@ -344,7 +345,7 @@ Item {
           width: parent.width
           horizontalAlignment: Text.AlignHCenter
           textFormat: Text.PlainText
-          text: "wasd/arrows move · +/- speed · p pause · r restart · q/esc close"
+          text: "wasd/arrows move · +/- speed · space/p pause · r restart · q/esc close"
           color: root.textColor
           opacity: 0.55
           font.family: Style.font.menuFamily
